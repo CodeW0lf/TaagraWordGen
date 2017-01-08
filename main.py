@@ -17,6 +17,8 @@ FIRST_SYL_WEIGHTS = [0.5, 0.37, 0.09, 0.03]
 SPECIAL_CHARS = ['sh', 'ai', 'ay', 'th']
 VOWELS = ['a', 'e', 'i', 'o', 'u']
 
+OUTPUT_FILE = "gen_words.txt"
+
 
 def main():
     global V_SYL
@@ -32,29 +34,16 @@ def main():
     LETTER_PAIRS = load_legal_pairs('legal_pairs.txt')
 
     num_words = 20
+    max_syl = 5
 
-    print('\n1 Syllable Words\n')
-    for i in range(num_words):
-        print(get_word(1))
-
-    print('\n2 Syllable Words\n')
-    for i in range(num_words):
-        print(get_word(2))
-
-    print('\n3 Syllable Words\n')
-    for i in range(num_words):
-        print(get_word(3))
-
-    print('\n4 Syllable Words\n')
-    for i in range(num_words):
-        print(get_word(4))
-
-    print('\n5 Syllable Words\n')
-    for i in range(num_words):
-        print(get_word(5))
+    out_file = open(OUTPUT_FILE, 'w')
+    for num_syl in range(1, max_syl + 1):
+        for i in range(num_words):
+            out_file.write(get_word(num_syl) + '\n')
+    out_file.close()
 
 
-def load_syl_file(path):
+def load_syl_file(path: str) -> dict:
     """Loads a Syllable file expecting one syllable per line"""
     file = open(path, 'r')
     first_letter_to_syl = dict()
@@ -69,11 +58,12 @@ def load_syl_file(path):
             if first_letter not in first_letter_to_syl:
                 first_letter_to_syl[first_letter] = []
             first_letter_to_syl[first_letter].append(line.strip())
+    file.close()
 
     return first_letter_to_syl
 
 
-def load_legal_pairs(path):
+def load_legal_pairs(path: str) -> dict:
     """Loads legal letter pairings, comma separated lines where letter is followed by legal pairings"""
     file = open(path, 'r')
 
@@ -87,11 +77,12 @@ def load_legal_pairs(path):
         # Following letters are the legal pairings
         for letter in split_line[1:]:
             letter_to_legal_letters[first_letter].append(letter.strip())
+    file.close()
 
     return letter_to_legal_letters
 
 
-def get_syl(previous_letter):
+def get_syl(previous_letter: str = None) -> str:
     """Chooses the next syllable from weighted distributions based on the previous letter if provided"""
     chosen_syl = None
     while chosen_syl is None:
@@ -122,11 +113,11 @@ def get_syl(previous_letter):
     return chosen_syl
 
 
-def get_word(num_syl):
+def get_word(num_syl: int) -> str:
     """Attempts to build a word with the number of given syllables"""
 
     # No previous letter, grab the first syllable randomly
-    word = get_syl(None)
+    word = get_syl()
 
     for i in range(1, num_syl):
         # Previous letter might be a special character
@@ -135,7 +126,7 @@ def get_word(num_syl):
         else:
             previous_letter = word[-1]
         try:
-            word = word + get_syl(previous_letter)
+            word += get_syl(previous_letter)
         except ValueError:
             # The previous letter had no valid pairings, just return what we had
             return word
